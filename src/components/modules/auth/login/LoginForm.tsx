@@ -12,12 +12,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-
-import { loginUser } from "@/services/AuthService";
+import { loginUser, reCaptchaTokenVerification } from "@/services/AuthService";
 import { toast } from "sonner";
 import { loginSchema } from "./LoginValidation";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const LoginForm = () => {
   const form = useForm({
@@ -28,13 +28,27 @@ const LoginForm = () => {
     formState: { isSubmitting },
   } = form;
 
+  const [reCaptchaStatus, setReCaptchaStatus] = useState(false);
+  console.log(reCaptchaStatus);
+
+  const handleReCaptcha = async (value: string | null) => {
+    try {
+      const res = await reCaptchaTokenVerification(value!);
+      console.log(res);
+      if (res?.success) {
+        setReCaptchaStatus(true);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
     console.log(data);
     try {
       const res = await loginUser(data);
       if (res?.success) {
         toast.success(res.message);
-        form.reset();
       } else {
         toast.error(res.message);
       }
@@ -55,7 +69,7 @@ const LoginForm = () => {
         </div>
       </div>
       <Form {...form}>
-        <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+        <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
             control={form.control}
             name="email"
@@ -82,7 +96,19 @@ const LoginForm = () => {
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full mt-3">
+          <div className="flex w-full mt-3">
+            <ReCAPTCHA
+              className="mx-auto"
+              sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_CLIENT_KEY!}
+              onChange={handleReCaptcha}
+            />
+          </div>
+          ,
+          <Button
+            disabled={reCaptchaStatus ? false : true}
+            type="submit"
+            className="w-full"
+          >
             {isSubmitting ? "Logging..." : "Login"}
           </Button>
         </form>
