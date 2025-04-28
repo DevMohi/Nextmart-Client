@@ -14,12 +14,19 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { logout } from "@/services/AuthService";
 import { useUser } from "@/context/UserContext";
+import { usePathname, useRouter } from "next/navigation";
+import { protectedRoutes } from "@/constants";
 
 export default function Navbar() {
   const { user, setIsLoading } = useUser();
+  const pathname = usePathname();
+  const router = useRouter();
   const handleLogout = () => {
     logout();
     setIsLoading(true);
+    if (protectedRoutes.some((route) => pathname.match(route))) {
+      router.push("/login");
+    }
   };
   return (
     <header className="border-b w-full">
@@ -45,11 +52,13 @@ export default function Navbar() {
 
           {user ? (
             <>
-              <Link href="/create-shop">
-                <Button className="rounded-full " variant="outline">
-                  Create Shop
-                </Button>
-              </Link>
+              {!user.hasShop && (
+                <Link href="/create-shop">
+                  <Button className="rounded-full mt-1 cursor-pointer">
+                    Create Shop
+                  </Button>
+                </Link>
+              )}
 
               <DropdownMenu>
                 <DropdownMenuTrigger>

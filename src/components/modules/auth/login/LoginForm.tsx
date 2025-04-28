@@ -18,6 +18,7 @@ import { loginUser, reCaptchaTokenVerification } from "@/services/AuthService";
 import { toast } from "sonner";
 import { loginSchema } from "./LoginValidation";
 import ReCAPTCHA from "react-google-recaptcha";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const LoginForm = () => {
   const form = useForm({
@@ -29,6 +30,10 @@ const LoginForm = () => {
   } = form;
 
   const [reCaptchaStatus, setReCaptchaStatus] = useState(false);
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirectPath");
+  console.log(redirect);
+  const router = useRouter();
   console.log(reCaptchaStatus);
 
   const handleReCaptcha = async (value: string | null) => {
@@ -48,7 +53,12 @@ const LoginForm = () => {
     try {
       const res = await loginUser(data);
       if (res?.success) {
-        toast.success(res.message);
+        toast.success(res?.message);
+        if (redirect) {
+          router.push(redirect);
+        } else {
+          router.push("/profile");
+        }
       } else {
         toast.error(res.message);
       }

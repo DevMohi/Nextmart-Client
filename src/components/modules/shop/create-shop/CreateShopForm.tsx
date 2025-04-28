@@ -17,6 +17,8 @@ import Logo from "@/app/assets/svgs/Logo";
 import { useState } from "react";
 import NMImageUploader from "@/components/ui/core/NMImageUploader";
 import ImagePreviewer from "@/components/ui/core/NMImageUploader/ImagePreviewer";
+import { createShop } from "@/services/Shop";
+import { toast } from "sonner";
 
 export default function CreateShopForm() {
   const [imageFiles, setImageFiles] = useState<File[] | []>([]);
@@ -29,7 +31,32 @@ export default function CreateShopForm() {
   } = form;
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
-    console.log(data);
+    const servicesOffered = data?.servicesOffered
+      .split(",")
+      .map((service: string) => service.trim())
+      .filter((service: string) => service !== "");
+
+    const modifiedData = {
+      ...data,
+      servicesOffered,
+      establishedYear: Number(data?.establishedYear),
+    };
+
+    console.log(modifiedData);
+
+    try {
+      const formData = new FormData();
+      formData.append("data", JSON.stringify(modifiedData));
+      formData.append("logo", imageFiles[0]);
+
+      const res = await createShop(formData);
+      console.log(res);
+      if (res.success) {
+        toast.success(res.message);
+      }
+    } catch (error: any) {
+      console.error("Error uploading files", error);
+    }
   };
 
   return (
