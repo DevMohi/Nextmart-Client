@@ -18,14 +18,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { createCategory } from "@/services/Category";
+import { createBrand } from "@/services/Brand";
 
 import { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-const CreateCategoryModal = () => {
+const CreateBrandModal = () => {
   const [imageFiles, setImageFiles] = useState<File[] | []>([]);
   const [imagePreview, setImagePreview] = useState<string[] | []>([]);
 
@@ -39,9 +38,9 @@ const CreateCategoryModal = () => {
     try {
       const formData = new FormData();
       formData.append("data", JSON.stringify(data));
-      formData.append("icon", imageFiles[0] as File);
+      formData.append("logo", imageFiles[0] as File);
 
-      const res = await createCategory(formData);
+      const res = await createBrand(formData);
       console.log(res);
 
       if (res?.success) {
@@ -57,11 +56,11 @@ const CreateCategoryModal = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>Create Category</Button>
+        <Button>Create Brand</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Product Category</DialogTitle>
+          <DialogTitle>Create Product Brand</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -80,24 +79,6 @@ const CreateCategoryModal = () => {
               )}
             />
             <div className="flex items-center justify-between mt-5">
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        className="h-36 w-72"
-                        {...field}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               {imagePreview.length > 0 ? (
                 <ImagePreviewer
                   setImageFiles={setImageFiles}
@@ -126,4 +107,4 @@ const CreateCategoryModal = () => {
   );
 };
 
-export default CreateCategoryModal;
+export default CreateBrandModal;

@@ -1,23 +1,24 @@
-"use client"; // 🚨 This is required since you're using client-side interactivity
-
-import { ICategory } from "@/types";
-import CreateCategoryModal from "./CreateCategoryModal";
-import { NMTable } from "@/components/ui/core/NMTable";
+"use client";
+import React from "react";
+import CreateBrandModal from "./CreateBrandModal";
+import { IBrand } from "@/types/brand";
+import { Trash } from "lucide-react";
+import { deleteBrand } from "@/services/Brand";
+import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
-import { Trash } from "lucide-react";
-import { toast } from "sonner";
-import { deleteCategory } from "@/services/Category";
+import { NMTable } from "@/components/ui/core/NMTable";
 
-type TCategoriesProps = {
-  categories: ICategory[];
+type TBrandProps = {
+  brands: IBrand[];
 };
 
-const ManageCategories = ({ categories }: TCategoriesProps) => {
-  const handleDelete = async (data: ICategory) => {
+const ManageBrand = ({ brands }: TBrandProps) => {
+  console.log(brands);
+  const handleDelete = async (data: IBrand) => {
     console.log(data._id);
     try {
-      const res = await deleteCategory(data._id);
+      const res = await deleteBrand(data._id);
       if (res.success) {
         toast.success(res?.message);
       } else {
@@ -28,14 +29,14 @@ const ManageCategories = ({ categories }: TCategoriesProps) => {
     }
   };
 
-  const columns: ColumnDef<ICategory>[] = [
+  const columns: ColumnDef<IBrand>[] = [
     {
       accessorKey: "name",
       header: () => <div>Category Name</div>,
       cell: ({ row }) => (
         <div className="flex items-center space-x-3">
           <Image
-            src={row.original.icon}
+            src={row.original.logo}
             alt={row.original.name}
             width={40}
             height={40}
@@ -81,13 +82,14 @@ const ManageCategories = ({ categories }: TCategoriesProps) => {
 
   return (
     <div>
+      {/* //will consist of a modal  */}
       <div className="flex items-center justify-between mb-5">
-        <h1 className="text-xl font-bold">Manage Categories</h1>
-        <CreateCategoryModal />
+        <h1 className="text-xl font-bold">Manage Brands</h1>
+        <CreateBrandModal />
       </div>
-      <NMTable data={categories} columns={columns} />
+      <NMTable data={brands} columns={columns} />
     </div>
   );
 };
 
-export default ManageCategories;
+export default ManageBrand;
