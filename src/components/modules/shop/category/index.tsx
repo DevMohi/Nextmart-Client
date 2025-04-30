@@ -1,30 +1,46 @@
-"use client"; // 🚨 This is required since you're using client-side interactivity
-
+"use client";
 import { ICategory } from "@/types";
 import CreateCategoryModal from "./CreateCategoryModal";
 import { NMTable } from "@/components/ui/core/NMTable";
 import { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
 import { Trash } from "lucide-react";
+import { useState } from "react";
+
 import { toast } from "sonner";
 import { deleteCategory } from "@/services/Category";
+import DeleteConfirmationModal from "@/components/ui/core/NMModal/DeleteConfirmationModal";
 
 type TCategoriesProps = {
   categories: ICategory[];
 };
 
 const ManageCategories = ({ categories }: TCategoriesProps) => {
-  const handleDelete = async (data: ICategory) => {
-    console.log(data._id);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+
+  const handleDelete = (data: ICategory) => {
+    console.log(data);
+    setSelectedId(data?._id);
+    setSelectedItem(data?.name);
+    setModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
-      const res = await deleteCategory(data._id);
-      if (res.success) {
-        toast.success(res?.message);
-      } else {
-        toast.error(res?.message);
+      if (selectedId) {
+        const res = await deleteCategory(selectedId);
+        console.log(res);
+        if (res.success) {
+          toast.success(res.message);
+          setModalOpen(false);
+        } else {
+          toast.error(res.message);
+        }
       }
     } catch (err: any) {
-      console.error(err);
+      console.error(err?.message);
     }
   };
 
@@ -47,7 +63,7 @@ const ManageCategories = ({ categories }: TCategoriesProps) => {
     },
     {
       accessorKey: "isActive",
-      header: () => <div>Status</div>,
+      header: () => <div>isActive</div>,
       cell: ({ row }) => (
         <div>
           {row.original.isActive ? (
@@ -66,26 +82,30 @@ const ManageCategories = ({ categories }: TCategoriesProps) => {
       accessorKey: "action",
       header: () => <div>Action</div>,
       cell: ({ row }) => (
-        <div>
-          <button
-            className="text-red-500"
-            title="Delete"
-            onClick={() => handleDelete(row.original)}
-          >
-            <Trash className="w-5 h-5" />
-          </button>
-        </div>
+        <button
+          className="text-red-500"
+          title="Delete"
+          onClick={() => handleDelete(row.original)}
+        >
+          <Trash className="w-5 h-5" />
+        </button>
       ),
     },
   ];
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">Manage Categories</h1>
         <CreateCategoryModal />
       </div>
       <NMTable data={categories} columns={columns} />
+      <DeleteConfirmationModal
+        name={selectedItem}
+        isOpen={isModalOpen}
+        onOpenChange={setModalOpen}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   );
 };

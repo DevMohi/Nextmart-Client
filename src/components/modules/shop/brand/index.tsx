@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import CreateBrandModal from "./CreateBrandModal";
 import { IBrand } from "@/types/brand";
 import { Trash } from "lucide-react";
@@ -8,24 +8,37 @@ import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
 import { NMTable } from "@/components/ui/core/NMTable";
+import DeleteConfirmationModal from "@/components/ui/core/NMModal/DeleteConfirmationModal";
 
 type TBrandProps = {
   brands: IBrand[];
 };
 
 const ManageBrand = ({ brands }: TBrandProps) => {
-  console.log(brands);
-  const handleDelete = async (data: IBrand) => {
-    console.log(data._id);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+
+  const handleDelete = (data: IBrand) => {
+    setSelectedId(data?._id);
+    setSelectedItem(data?.name);
+    setModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
-      const res = await deleteBrand(data._id);
-      if (res.success) {
-        toast.success(res?.message);
-      } else {
-        toast.error(res?.message);
+      if (selectedId) {
+        const res = await deleteBrand(selectedId);
+        console.log(res);
+        if (res.success) {
+          toast.success(res.message);
+          setModalOpen(false);
+        } else {
+          toast.error(res.message);
+        }
       }
     } catch (err: any) {
-      console.error(err);
+      console.error(err?.message);
     }
   };
 
@@ -88,6 +101,12 @@ const ManageBrand = ({ brands }: TBrandProps) => {
         <CreateBrandModal />
       </div>
       <NMTable data={brands} columns={columns} />
+      <DeleteConfirmationModal
+        name={selectedItem}
+        isOpen={isModalOpen}
+        onOpenChange={setModalOpen}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   );
 };
