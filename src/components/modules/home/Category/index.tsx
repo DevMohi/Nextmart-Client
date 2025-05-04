@@ -28,11 +28,9 @@ const Category = async () => {
           <CategoryCard key={idx} category={category} />
         ))} */}
 
-          {Array(12)
-            .fill(categories?.[0])
-            .map((category: ICategory, idx: number) => (
-              <CategoryCard key={idx} category={category} />
-            ))}
+          {categories?.slice(0, 6).map((category: ICategory, idx: number) => (
+            <CategoryCard key={idx} category={category} />
+          ))}
         </div>
       </div>
     </NMContainer>
