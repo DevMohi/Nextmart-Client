@@ -29,12 +29,13 @@ export default function Navbar() {
     }
   };
   return (
-    <header className="border-b w-full">
-      <div className="container flex justify-between items-center mx-auto h-16 px-3">
-        <h1 className="text-2xl font-black flex items-center">
-          <Logo />
-          Next Mart
-        </h1>
+    <header className="border-b bg-background w-full sticky top-0 z-10">
+      <div className="container flex justify-between items-center mx-auto h-16 px-5">
+        <Link href="/">
+          <h1 className="text-2xl font-black flex items-center">
+            <Logo /> Next Mart
+          </h1>
+        </Link>
         <div className="max-w-md  flex-grow">
           <input
             type="text"
@@ -50,15 +51,11 @@ export default function Navbar() {
             <ShoppingBag />
           </Button>
 
-          {user ? (
+          {user?.email ? (
             <>
-              {!user.hasShop && (
-                <Link href="/create-shop">
-                  <Button className="rounded-full mt-1 cursor-pointer">
-                    Create Shop
-                  </Button>
-                </Link>
-              )}
+              <Link href="/create-shop">
+                <Button className="rounded-full">Create Shop</Button>
+              </Link>
 
               <DropdownMenu>
                 <DropdownMenuTrigger>
@@ -71,14 +68,17 @@ export default function Navbar() {
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Dashboard</DropdownMenuItem>
-                  <DropdownMenuItem>Shop</DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href={`/${user?.role}/dashboard`}>Dashboard</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>My Shop</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="bg-red-500 cursor-pointer"
                     onClick={handleLogout}
                   >
-                    <LogOut /> <span>Logout</span>
+                    <LogOut />
+                    <span>Log Out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
