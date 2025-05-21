@@ -6,7 +6,7 @@ import FilterSidebar from "./FilterSidebar";
 const AllProducts = ({ products }: { products: IProduct[] }) => {
   return (
     <div className="flex gap-8 my-10">
-      <div>
+      <div className="">
         <FilterSidebar />
       </div>
       <div>

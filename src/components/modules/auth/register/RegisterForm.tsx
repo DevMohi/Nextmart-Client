@@ -17,12 +17,14 @@ import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { registrationSchema } from "./RegisterValidation";
 import { registerUser } from "@/services/AuthService";
 import { toast } from "sonner";
+import { useUser } from "@/context/UserContext";
 
 const RegisterForm = () => {
   const form = useForm({
     resolver: zodResolver(registrationSchema),
   });
 
+  const { setIsLoading } = useUser();
   const {
     formState: { isSubmitting },
   } = form;
@@ -34,6 +36,7 @@ const RegisterForm = () => {
     console.log(data);
     try {
       const res = await registerUser(data);
+      setIsLoading(true)
       if (res?.success) {
         toast.success(res.message);
         form.reset();

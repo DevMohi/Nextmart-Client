@@ -1,4 +1,5 @@
 "use client";
+import Loading from "@/components/ui/loading";
 import { AppStore, makeStore } from "@/redux/store";
 import { ReactNode, useRef } from "react";
 import { Provider } from "react-redux";
@@ -14,9 +15,10 @@ const StoreProvider = ({ children }: { children: ReactNode }) => {
   const persistedStore = persistStore(storeRef.current);
   return (
     <Provider store={storeRef.current}>
-      <PersistGate loading={<div>Loading...</div>} persistor={persistedStore}>
+      {/* //deploy it in build mode   */}
+      {/* <PersistGate loading={<Loading />} persistor={persistedStore}>  */}
         {children}
-      </PersistGate>
+      {/* </PersistGate>  */}
     </Provider>
   );
 };

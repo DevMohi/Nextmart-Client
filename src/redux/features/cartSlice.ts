@@ -1,6 +1,7 @@
 import { IProduct } from "@/types";
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
+import { addCoupon } from "@/services/Cart";
 
 export interface CartProduct extends IProduct {
   orderQuantity: number;
@@ -10,18 +11,60 @@ interface InitialState {
   products: CartProduct[];
   city: string;
   shippingAddress: string;
+  shopId: string;
+  coupon: {
+    code: string;
+    discountAmount: number;
+    isLoading: boolean;
+    error: string;
+  };
 }
 const initialState: InitialState = {
   products: [],
   city: "",
   shippingAddress: "",
+  shopId: "",
+  coupon: {
+    code: "",
+    discountAmount: 0,
+    isLoading: false,
+    error: "",
+  },
 };
+
+export const fetchCoupon = createAsyncThunk(
+  "cart/fetchCoupon",
+  async ({
+    couponCode,
+    subTotal,
+    shopId,
+  }: {
+    couponCode: string;
+    subTotal: number;
+    shopId: string;
+  }) => {
+    try {
+      const res = await addCoupon(couponCode, subTotal, shopId);
+      if (!res.success) {
+        throw new Error(res.message);
+      }
+      return res;
+    } catch (error: any) {
+      console.log(error);
+      throw new Error(error.message);
+    }
+  }
+);
 
 const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
     addProduct: (state, action) => {
+      if (state.products.length === 0) {
+        state.shopId = action.payload.shop._id;
+      }
+
       const productToAdd = state.products.find(
         (product) => product._id === action.payload._id
       );
@@ -71,6 +114,33 @@ const cartSlice = createSlice({
       state.shippingAddress = "";
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(fetchCoupon.pending, (state) =>
+      // console.log(action, "pending")
+      {
+        state.coupon.isLoading = true;
+        state.coupon.error = "";
+      }
+    );
+    builder.addCase(fetchCoupon.rejected, (state, action) =>
+      // console.log(action, "rejected")
+      {
+        state.coupon.isLoading = false;
+        state.coupon.error = action.error.message as string;
+        state.coupon.code = "";
+        state.coupon.discountAmount = 0;
+      }
+    );
+    builder.addCase(fetchCoupon.fulfilled, (state, action) =>
+      // console.log(action, "fullfilled")
+      {
+        state.coupon.isLoading = false;
+        state.coupon.error = "";
+        state.coupon.code = action.payload.data.coupon.code;
+        state.coupon.discountAmount = action.payload.data.discountAmount;
+      }
+    );
+  },
 });
 
 //Products
@@ -86,6 +156,7 @@ export const orderSelector = (state: RootState) => {
       quantity: product.orderQuantity,
       color: "White",
     })),
+    coupon : state.cart.coupon.code,
     shippingAddress: `${state.cart.shippingAddress} - ${state.cart.city}`,
     paymentMethod: "Online",
   };
@@ -94,8 +165,23 @@ export const orderSelector = (state: RootState) => {
 export const grandTotalSelector = (state: RootState) => {
   const subTotal = subTotalSelector(state);
   const shippingCost = shippingCostSelector(state);
+  const discountAmount = discountAmountSelector(state);
 
-  return subTotal + shippingCost;
+  return subTotal - discountAmount + shippingCost;
+};
+
+//Coupon
+
+export const shopSelector = (state: RootState) => {
+  return state.cart.shopId;
+};
+
+export const couponSelector = (state: RootState) => {
+  return state.cart.coupon;
+};
+
+export const discountAmountSelector = (state: RootState) => {
+  return state.cart.coupon.discountAmount;
 };
 
 //Payments

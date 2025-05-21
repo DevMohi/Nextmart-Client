@@ -11,6 +11,7 @@ import {
   REGISTER,
 } from "redux-persist";
 import storage from "./storage";
+import { couponMiddleware } from "./middlewares/coupon.middleware";
 
 //ekta config lagbe
 const persistOptions = {
@@ -23,14 +24,15 @@ const persistedCart = persistReducer(persistOptions, cartReducer);
 export const makeStore = () => {
   return configureStore({
     reducer: {
-      cart: persistedCart,
+      // cart: persistedCart,
+      cart: cartReducer,
     },
-    middleware: (getDefaultMiddlewares) =>
+    middleware: (getDefaultMiddlewares: any) =>
       getDefaultMiddlewares({
         serializableCheck: {
           ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
         },
-      }),
+      }).concat(couponMiddleware),
   });
 };
 

@@ -1,14 +1,17 @@
 "use server";
 
+import { getValidToken } from "@/lib/verifyToken";
 import { revalidateTag } from "next/cache";
-import { cookies } from "next/headers";
+
 
 export const createBrand = async (data: FormData) => {
+  const token = await getValidToken();
+
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/brand`, {
       method: "POST",
       headers: {
-        Authorization: (await cookies()).get("accessToken")!.value,
+        Authorization: token,
       },
       body: data,
     });
@@ -34,11 +37,13 @@ export const getAllBrands = async () => {
 };
 
 export const deleteBrand = async (id: string) => {
+  const token = await getValidToken();
+
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/brand/${id}`, {
       method: "DELETE",
       headers: {
-        Authorization: (await cookies()).get("accessToken")!.value,
+        Authorization: token,
       },
     });
     revalidateTag("BRAND");

@@ -1,5 +1,5 @@
 "use client";
-import Logo from "@/app/assets/svgs/Logo";
+import ReCAPTCHA from "react-google-recaptcha";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,61 +10,61 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import React, { useState } from "react";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import Link from "next/link";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import { loginUser, reCaptchaTokenVerification } from "@/services/AuthService";
-
 import { toast } from "sonner";
-import { loginSchema } from "./LoginValidation";
-import ReCAPTCHA from "react-google-recaptcha";
-import { useRouter, useSearchParams } from "next/navigation";
 
-const LoginForm = () => {
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useUser } from "@/context/UserContext";
+import { loginSchema } from "./LoginValidation";
+import Logo from "@/app/assets/svgs/Logo";
+
+export default function LoginForm() {
   const form = useForm({
     resolver: zodResolver(loginSchema),
   });
+
+  const { setIsLoading } = useUser();
+
+  const [reCaptchaStatus, setReCaptchaStatus] = useState(false);
+
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirectPath");
+  const router = useRouter();
 
   const {
     formState: { isSubmitting },
   } = form;
 
-  const [reCaptchaStatus, setReCaptchaStatus] = useState(false);
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirectPath");
-  console.log(redirect);
-  const router = useRouter();
-  console.log(reCaptchaStatus);
-
   const handleReCaptcha = async (value: string | null) => {
     try {
       const res = await reCaptchaTokenVerification(value!);
-      console.log(res);
       if (res?.success) {
         setReCaptchaStatus(true);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
     }
   };
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
-    console.log(data);
     try {
       const res = await loginUser(data);
+      setIsLoading(true);
       if (res?.success) {
         toast.success(res?.message);
         if (redirect) {
           router.push(redirect);
         } else {
-          router.push("/profile");
+          router.push("/");
         }
       } else {
-        toast.error(res.message);
+        toast.error(res?.message);
       }
-      console.log(res);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
     }
@@ -72,15 +72,15 @@ const LoginForm = () => {
 
   return (
     <div className="border-2 border-gray-300 rounded-xl flex-grow max-w-md w-full p-5">
-      <Logo />
-      <div className="mb-3">
-        <div className="flex items-center space-x-4 mb-2 ">
-          <h1>Login</h1>
-          <p className="font-medium text-sm text-gray-500">Welcome Back!</p>
+      <div className="flex items-center space-x-4 ">
+        <Logo />
+        <div>
+          <h1 className="text-xl font-semibold">Login</h1>
+          <p className="font-extralight text-sm text-gray-600">Welcome back!</p>
         </div>
       </div>
       <Form {...form}>
-        <form className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
             control={form.control}
             name="email"
@@ -88,7 +88,7 @@ const LoginForm = () => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ""} />
+                  <Input type="email" {...field} value={field.value || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -101,39 +101,36 @@ const LoginForm = () => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ""} type="password" />
+                  <Input type="password" {...field} value={field.value || ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <div className="flex w-full mt-3">
+
+          <div className="flex mt-3 w-full">
             <ReCAPTCHA
-              className="mx-auto"
               sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_CLIENT_KEY!}
               onChange={handleReCaptcha}
+              className="mx-auto"
             />
           </div>
-          ,
+
           <Button
             disabled={reCaptchaStatus ? false : true}
             type="submit"
-            className="w-full"
+            className="mt-5 w-full"
           >
-            {isSubmitting ? "Logging..." : "Login"}
+            {isSubmitting ? "Logging...." : "Login"}
           </Button>
         </form>
       </Form>
       <p className="text-sm text-gray-600 text-center my-3">
-        Do not have an account?
-        <Link href="/register" className="text-primary ml-1">
-          Login
+        Do not have any account ?
+        <Link href="/register" className="text-primary">
+          Register
         </Link>
       </p>
     </div>
   );
-};
-
-//
-
-export default LoginForm;
+}
